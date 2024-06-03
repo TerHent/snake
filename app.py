@@ -10,8 +10,7 @@ pygame.init()
 screen = pygame.display.set_mode((scr_width, scr_height))
 pygame.display.set_caption('Snake Game')
 clock = pygame.time.Clock()
-running = True
-font = pygame.font.SysFont('Arial', 35)
+font = pygame.font.SysFont('Arial', 20)
 
 # Food setup
 food_pos = [random.randrange(1, (scr_width//block)) * block, random.randrange(1, (scr_height//block)) * block]
@@ -25,25 +24,50 @@ red = (255, 0, 0)
 
 # Initialize score
 score = 0
+
 def show_score():
     score_text = font.render(f'Score: {score}', True, black)
     screen.blit(score_text, [10, 10])
 
-# Snake setup
-snake_pos = [100, 50]
-snake_body = [[100, 50], [90, 50], [80, 50]]
-direction = 'RIGHT'
-change_to = direction
+def game_over():
+    over_font = pygame.font.SysFont('Arial', 30)
+    over_text = over_font.render('You Lose! Press R to Restart or Q to Quit', True, red)
+    screen.fill(white)
+    screen.blit(over_text, [scr_width // 8, scr_height // 3])
+    pygame.display.flip()
+    
+    waiting = True
+    while waiting:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_r:
+                    return True
+                if event.key == pygame.K_q:
+                    pygame.quit()
+                    exit()
 
-# Function to generate new food position
-def generate_food():
-    return [random.randrange(1, (scr_width // block)) * block, random.randrange(1, (scr_height // block)) * block]
+def reset_game():
+    global snake_pos, snake_body, direction, change_to, food_pos, food_spawn, score
+    snake_pos = [100, 50]
+    snake_body = [[100, 50], [90, 50], [80, 50]]
+    direction = 'RIGHT'
+    change_to = direction
+    food_pos = [random.randrange(1, (scr_width // block)) * block, random.randrange(1, (scr_height // block)) * block]
+    food_spawn = True
+    score = 0
+
+# Snake setup
+reset_game()
 
 # Game loop
-while running:
+while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
-            running = False
+            pygame.quit()
+            exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_LEFT and direction != 'RIGHT':
                 change_to = 'LEFT'
@@ -76,15 +100,21 @@ while running:
         snake_body.pop()
 
     if not food_spawn:
-        food_pos = generate_food()
+        food_pos = [random.randrange(1, (scr_width // block)) * block, random.randrange(1, (scr_height // block)) * block]
     food_spawn = True
 
     # Check for collision with boundaries or itself
     if snake_pos[0] < 0 or snake_pos[0] >= scr_width or snake_pos[1] < 0 or snake_pos[1] >= scr_height:
-        running = False
+        if game_over():
+            reset_game()
+        else:
+            running = False
     for segment in snake_body[1:]:
         if snake_pos == segment:
-            running = False
+            if game_over():
+                reset_game()
+            else:
+                running = False
 
     # Rendering
     screen.fill(white)
@@ -95,5 +125,3 @@ while running:
     pygame.display.flip()
 
     clock.tick(20)  # Adjust the speed of the game
-
-pygame.quit()
