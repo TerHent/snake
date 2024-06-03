@@ -11,6 +11,11 @@ pygame.display.set_caption('Snake Game')
 clock = pygame.time.Clock()
 running = True
 
+# Food setup
+food_pos = [random.randrange(1, (scr_width//10)) * 10, random.randrange(1, (scr_height//10)) * 10]
+def generate_food():
+    return [random.randrange(1, (scr_width//10)) * 10, random.randrange(1, (scr_height//10)) * 10]
+
 # Colors
 white = (255, 255, 255)
 green = (0, 255, 0)
@@ -48,7 +53,11 @@ while running:
     if direction == 'DOWN':
         snake_pos[1] += block
 
-    # Check for collision
+    # Check for food collision
+    if snake_pos == food_pos:
+        snake_body.insert(0, list(snake_pos))
+        food_pos = generate_food()
+    # Check for border and self collision
     if snake_pos[0] < 0 or snake_pos[0] >= scr_width or snake_pos[1] < 0 or snake_pos[1] >= scr_height:
         running = False
     for segment in snake_body[1:]:
